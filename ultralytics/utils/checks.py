@@ -108,7 +108,8 @@ def parse_version(version="0.0.0") -> tuple:
         (tuple): Tuple of integers representing the numeric part of the version, i.e. (2, 0, 1)
     """
     try:
-        return tuple(map(int, re.findall(r"\d+", version)[:3]))  # '2.0.1+cpu' -> (2, 0, 1)
+        nums = [int(x) for x in re.findall(r"\d+", version)[:3]]
+        return tuple(nums + [0] * (3 - len(nums)))  # pad to 3, i.e. '2.0.1+cpu' -> (2, 0, 1), '2' -> (2, 0, 0)
     except Exception as e:
         LOGGER.warning(f"failure for parse_version({version}), returning (0, 0, 0): {e}")
         return 0, 0, 0
@@ -525,8 +526,6 @@ def check_executorch_requirements():
         check_requirements("packaging>=22.0")
 
     check_requirements("executorch", cmds=f"torch=={TORCH_VERSION.split('+')[0]}")
-    # Pin numpy to avoid coremltools errors with numpy>=2.4.0, must be separate
-    check_requirements("numpy<=2.3.5")
 
 
 def check_tensorrt(min_version: str = "7.0.0"):
@@ -614,7 +613,7 @@ def check_yolov5u_filename(file: str, verbose: bool = True) -> str:
                 LOGGER.info(
                     f"PRO TIP 💡 Replace 'model={original_file}' with new 'model={file}'.\nYOLOv5 'u' models are "
                     f"trained with https://github.com/ultralytics/ultralytics and feature improved performance vs "
-                    f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5.\n"
+                    f"standard YOLOv5 models trained with https://github.com/ultralytics/yolov5."
                 )
     return file
 
@@ -1067,3 +1066,4 @@ IS_PYTHON_3_13 = PYTHON_VERSION.startswith("3.13")
 IS_PYTHON_MINIMUM_3_9 = check_python("3.9", hard=False)
 IS_PYTHON_MINIMUM_3_10 = check_python("3.10", hard=False)
 IS_PYTHON_MINIMUM_3_12 = check_python("3.12", hard=False)
+IS_PYTHON_MINIMUM_3_13 = check_python("3.13", hard=False)
